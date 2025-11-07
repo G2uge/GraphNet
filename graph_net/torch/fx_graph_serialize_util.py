@@ -24,6 +24,8 @@ def serialize_graph_module_to_str(gm: torch.fx.GraphModule) -> str:
         (r"torch\._C\._fft\.fft_irfft\(", "torch.fft.irfft("),
         (r"torch\._C\._fft\.fft_rfft\(", "torch.fft.rfft("),
         (r"torch\._C\._fft\.fft_fftn\(", "torch.fft.fftn("),
+        (r"torch\._C\._set_grad_enabled\(", "torch.set_grad_enabled("),
+        (r"torch\._C\.set_grad_enabled\(", "torch.set_grad_enabled("),
         # Add new rules to this list as needed
     ]
     for pattern, repl in replacements:

@@ -126,6 +126,30 @@ class UnstableToStableBackend(GraphCompilerBackend):
 
         return gm
 
+    def _impl_unstable_to_stable_set_grad_enabled(self, gm):
+        """
+        Convert torch._C._set_grad_enabled and torch._C.set_grad_enabled to torch.set_grad_enabled
+        """
+
+        def replace_in_graph(graph_mod):
+            for node in graph_mod.graph.nodes:
+                if node.op == "call_function":
+                    # 宽松匹配所有 set_grad_enabled 相关 target
+                    if "set_grad_enabled" in str(node.target):
+                        node.target = torch.set_grad_enabled
+            graph_mod.recompile()
+
+        modules = [gm]
+        modules += [
+            m
+            for _, m in gm.named_modules()
+            if isinstance(m, torch.fx.GraphModule) and m is not gm
+        ]
+        for m in modules:
+            replace_in_graph(m)
+
+        return gm
+
     def unstable_to_stable(self, gm):
         methods = (
             name
