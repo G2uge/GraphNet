@@ -126,6 +126,33 @@ class UnstableToStableBackend(GraphCompilerBackend):
 
         return gm
 
+    def _impl_unstable_to_stable_gelu(self, gm):
+        """
+        Convert torch._C._nn.gelu to torch.nn.functional.gelu
+        """
+        import torch.nn.functional as F
+
+        def replace_in_graph(graph_mod):
+            for node in graph_mod.graph.nodes:
+                if node.op == "call_function":
+                    # 宽松匹配所有 gelu 相关 target
+                    if "gelu" in str(node.target) and "torch._C._nn" in str(
+                        node.target
+                    ):
+                        node.target = F.gelu
+            graph_mod.recompile()
+
+        modules = [gm]
+        modules += [
+            m
+            for _, m in gm.named_modules()
+            if isinstance(m, torch.fx.GraphModule) and m is not gm
+        ]
+        for m in modules:
+            replace_in_graph(m)
+
+        return gm
+
     def unstable_to_stable(self, gm):
         methods = (
             name
