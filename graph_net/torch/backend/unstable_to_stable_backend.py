@@ -126,6 +126,28 @@ class UnstableToStableBackend(GraphCompilerBackend):
 
         return gm
 
+    def _impl_unstable_to_stable_linalg_vector_norm(self, gm):
+        """
+        Convert torch._C._linalg.linalg_vector_norm to torch.linalg.vector_norm
+        """
+        # Update graph nodes: replace torch._C._linalg.linalg_vector_norm with torch.linalg.vector_norm
+        issue_nodes = (
+            node
+            for node in gm.graph.nodes
+            if node.op == "call_function"
+            if hasattr(node.target, "__module__")
+            if node.target.__module__ == "torch._C._linalg"
+            if hasattr(node.target, "__name__")
+            if node.target.__name__ == "linalg_vector_norm"
+        )
+        for node in issue_nodes:
+            node.target = torch.linalg.vector_norm
+
+        # Recompile the graph
+        gm.recompile()
+
+        return gm
+
     def unstable_to_stable(self, gm):
         methods = (
             name
