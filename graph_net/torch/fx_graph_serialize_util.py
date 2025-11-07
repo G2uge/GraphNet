@@ -23,6 +23,7 @@ def serialize_graph_module_to_str(gm: torch.fx.GraphModule) -> str:
         (r"torch\._C\._nn\.avg_pool2d\(", "torch.nn.functional.avg_pool2d("),
         (r"torch\._C\._fft\.fft_irfft\(", "torch.fft.irfft("),
         (r"torch\._C\._fft\.fft_rfft\(", "torch.fft.rfft("),
+        (r"torch\._C\._linalg\.linalg_norm\(", "torch.linalg.norm("),
         # Add new rules to this list as needed
     ]
     for pattern, repl in replacements:
